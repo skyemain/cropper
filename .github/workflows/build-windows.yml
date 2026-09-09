@@ -35,26 +35,30 @@ jobs:
         run: python -m pytest -q
 
       - name: Build application (folder + portable)
+        shell: cmd
         run: |
-          python -m PyInstaller --noconfirm packaging/pyinstaller.spec
-          python -m PyInstaller --noconfirm packaging/pyinstaller-onefile.spec
+          python -m PyInstaller --noconfirm packaging\pyinstaller.spec
+          python -m PyInstaller --noconfirm packaging\pyinstaller-onefile.spec
           if not exist dist\portable mkdir dist\portable
           move /Y dist\IDPhotoAutoCropper.exe dist\portable\IDPhotoAutoCropper.exe
 
       - name: Verify folder build
+        shell: cmd
         run: |
-          & "dist\ID Photo Auto Cropper\ID Photo Auto Cropper.exe" --selftest
+          "dist\ID Photo Auto Cropper\ID Photo Auto Cropper.exe" --selftest
 
       - name: Verify portable build
+        shell: cmd
         run: |
-          & "dist\portable\IDPhotoAutoCropper.exe" --selftest
+          dist\portable\IDPhotoAutoCropper.exe --selftest
 
       - name: Install Inno Setup
         run: choco install innosetup -y --no-progress
 
       - name: Build installer
+        shell: cmd
         run: |
-          & "${env:ProgramFiles(x86)}\Inno Setup 6\ISCC.exe" packaging\installer.iss
+          "%ProgramFiles(x86)%\Inno Setup 6\ISCC.exe" packaging\installer.iss
 
       - name: Upload build artifacts
         uses: actions/upload-artifact@v4
