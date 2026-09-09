@@ -1,0 +1,24 @@
+{
+  "name": "ID Photo Auto Cropper",
+  "build": {
+    "dockerfile": "Dockerfile",
+    "context": ".."
+  },
+  "user": "ubuntu",
+  "install": "bash .cursor/scripts/install.sh",
+  "terminals": [
+    {
+      "name": "flet-gui",
+      "command": "bash .cursor/scripts/run-gui-web.sh"
+    }
+  ],
+  "ports": [
+    {
+      "name": "flet-web",
+      "port": 8619
+    }
+  ],
+  "repositoryDependencies": [
+    "https://github.com/skyemain/cropper"
+  ]
+}
