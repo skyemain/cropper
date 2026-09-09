@@ -1,0 +1,18 @@
+[project]
+name = "id-photo-auto-cropper"
+version = "1.0.0"
+description = "Automatically align and crop portrait photographs for ID-card workflows (local, offline)."
+readme = "README.md"
+requires-python = ">=3.10,<3.13"
+license = { text = "MIT" }
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["."]
+addopts = "-q"
+filterwarnings = [
+    "ignore::UserWarning:google.protobuf.symbol_database",
+]
+
+[tool.ruff]
+line-length = 100

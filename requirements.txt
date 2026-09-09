@@ -1,0 +1,18 @@
+# ID Photo Auto Cropper - runtime dependencies
+# Pinned as a known-compatible set for Python 3.11 / 3.12 on Windows and Linux.
+#
+# Compatibility notes:
+# - mediapipe 0.10.14 ships prebuilt wheels for CPython 3.9-3.12 on
+#   win_amd64 and manylinux x86_64, and is built against the NumPy 1.x ABI,
+#   so NumPy is pinned < 2.
+# - mediapipe depends on opencv-contrib-python; it is pinned here explicitly
+#   (do NOT also install opencv-python - the two packages both provide `cv2`
+#   and overwrite each other, which breaks frozen builds).
+# - flet 0.28.3 is the last stable 0.x line with the classic desktop runtime
+#   and works with PyInstaller one-folder packaging.
+
+flet[all]==0.28.3
+mediapipe==0.10.14
+opencv-contrib-python==4.10.0.84
+numpy==1.26.4
+Pillow==10.4.0
