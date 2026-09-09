@@ -204,9 +204,14 @@ If you cloned from Cursor's temporary Origin remote and need to push to GitHub:
 push_to_github.bat
 ```
 
-Or manually:
+Or manually (requires Git):
 
 ```bat
 git remote add github https://github.com/skyemain/cropper.git
 git push -u github main
 ```
+
+**No Git on your PC?** The cloud agent can push for you after a one-time GitHub
+authorization (see agent instructions), or upload the source zip from the
+agent artifacts at `cropper-source.zip` via
+https://github.com/skyemain/cropper/upload/main
