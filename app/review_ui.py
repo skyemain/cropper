@@ -15,6 +15,20 @@ from typing import Callable, Optional
 import flet as ft
 
 from app.settings import AppSettings
+from app.theme import (
+    ACCENT,
+    AMBER,
+    BORDER,
+    GREEN,
+    MUTED,
+    SURFACE,
+    SURFACE_2,
+    TXT,
+    body,
+    button_style,
+    header_bar,
+    heading,
+)
 from processing.alignment import ManualAdjust
 from processing.detector import EngineResult, get_face_engine
 from processing.processor import (
@@ -62,6 +76,7 @@ class ReviewScreen:
         self.face_index: Optional[int] = None
         self._cache: Optional[tuple[str, object, EngineResult]] = None  # name, bgr, result
         self._busy = False
+        self._image_seq = 0
 
         self._build_controls()
 
@@ -94,94 +109,123 @@ class ReviewScreen:
     # ------------------------------------------------------------------
 
     def _build_controls(self) -> None:
-        self.title_text = ft.Text("Manual Review", size=16, weight=ft.FontWeight.BOLD)
-        self.counter_text = ft.Text("", size=13)
-        self.reason_text = ft.Text("", size=13, color=ft.Colors.ORANGE_800)
-        self.status_text = ft.Text("", size=12, color=ft.Colors.GREY_700)
-        self.busy_ring = ft.ProgressRing(width=18, height=18, stroke_width=2, visible=False)
+        self.counter_text = heading("", size=13)
+        self.reason_text = body("", size=12.5, color=AMBER)
+        self.status_text = body("", size=12, color=MUTED)
+        self.busy_ring = ft.ProgressRing(width=16, height=16, stroke_width=2,
+                                         color=ACCENT, visible=False)
 
         self.image_view = ft.Image(src_base64="", fit=ft.ImageFit.CONTAIN,
-                                   height=520, visible=False, border_radius=6)
+                                   height=500, visible=False, border_radius=12)
         self.image_placeholder = ft.Container(
-            content=ft.ProgressRing(),
-            height=520, alignment=ft.alignment.center,
+            content=ft.ProgressRing(color=ACCENT),
+            height=500, alignment=ft.alignment.center,
+            bgcolor=SURFACE_2, border_radius=12, border=ft.border.all(1, BORDER),
         )
 
-        self.item_list = ft.ListView(expand=True, spacing=2)
+        self.item_list = ft.ListView(expand=True, spacing=6)
 
         self.face_dropdown = ft.Dropdown(
-            label="Use face", width=180, visible=False,
+            label="Use face", width=190, visible=False,
+            bgcolor=SURFACE_2, border_color=BORDER, focused_border_color=ACCENT,
+            border_radius=10,
+            label_style=ft.TextStyle(color=MUTED, size=12),
+            text_style=ft.TextStyle(color=TXT, size=13),
             on_change=lambda e: self._on_face_selected(),
         )
 
-        def slider(label: str, mn: float, mx: float, value: float, fmt: str) -> ft.Slider:
+        def slider(mn: float, mx: float, value: float, fmt: str) -> ft.Slider:
             return ft.Slider(
                 min=mn, max=mx, value=value, label=fmt, expand=True,
+                active_color=ACCENT, inactive_color=SURFACE_2,
                 on_change_end=lambda e: self._on_adjust_changed(),
             )
 
-        self.s_dx = slider("dx", -200, 200, 0, "{value} px")
-        self.s_dy = slider("dy", -200, 200, 0, "{value} px")
-        self.s_zoom = slider("zoom", 0.6, 1.6, 1.0, "{value}x")
-        self.s_rot = slider("rot", -20, 20, 0, "{value} deg")
+        self.s_dx = slider(-200, 200, 0, "{value} px")
+        self.s_dy = slider(-200, 200, 0, "{value} px")
+        self.s_zoom = slider(0.6, 1.6, 1.0, "{value}x")
+        self.s_rot = slider(-20, 20, 0, "{value} deg")
 
         self.save_button = ft.FilledButton(
-            "Save Override", icon=ft.Icons.SAVE, on_click=lambda e: self._save_override())
+            "Save Override", icon=ft.Icons.SAVE_ROUNDED,
+            style=button_style(primary=True),
+            on_click=lambda e: self._save_override())
         self.reset_button = ft.OutlinedButton(
-            "Reset to automatic crop", icon=ft.Icons.RESTART_ALT,
+            "Reset to automatic crop", icon=ft.Icons.RESTART_ALT_ROUNDED,
+            style=button_style(),
             on_click=lambda e: self._reset_adjust())
         self.prev_button = ft.OutlinedButton(
-            "Previous", icon=ft.Icons.CHEVRON_LEFT,
+            "Previous", icon=ft.Icons.CHEVRON_LEFT_ROUNDED, style=button_style(),
             on_click=lambda e: self._navigate(-1))
         self.next_button = ft.OutlinedButton(
-            "Next", icon=ft.Icons.CHEVRON_RIGHT,
+            "Next", icon=ft.Icons.CHEVRON_RIGHT_ROUNDED, style=button_style(),
             on_click=lambda e: self._navigate(1))
 
     def _label_row(self, text: str, control: ft.Control) -> ft.Row:
-        return ft.Row([ft.Container(ft.Text(text, size=12), width=130), control])
+        return ft.Row([ft.Container(body(text, size=12, color=MUTED), width=130),
+                       control])
 
     def show(self) -> None:
-        self.page.appbar = ft.AppBar(
-            leading=ft.IconButton(ft.Icons.ARROW_BACK, tooltip="Back",
+        self.page.appbar = None
+        header = header_bar(
+            self.page,
+            leading=ft.IconButton(ft.Icons.ARROW_BACK_ROUNDED, tooltip="Back",
+                                  icon_color=TXT,
                                   on_click=lambda e: self.on_back()),
-            title=ft.Text("Manual Review - flagged photos"),
-            bgcolor=ft.Colors.ORANGE_50,
+            title="Manual Review",
+            subtitle="Adjust and approve flagged photos",
+            actions=[],
         )
         self._rebuild_item_list()
 
         left = ft.Container(
             content=ft.Column(
-                [ft.Text("Flagged photos", weight=ft.FontWeight.BOLD, size=13),
+                [ft.Row([ft.Icon(ft.Icons.FLAG_ROUNDED, size=15, color=AMBER),
+                         heading("Flagged photos", size=13)], spacing=8),
                  self.item_list],
-                spacing=8, expand=True,
+                spacing=10, expand=True,
             ),
-            width=260, padding=10,
-            bgcolor=ft.Colors.GREY_50, border_radius=8,
+            width=272, padding=14,
+            bgcolor=SURFACE, border=ft.border.all(1, BORDER), border_radius=16,
         )
-        controls = ft.Column(
-            [
-                ft.Row([self.counter_text, self.busy_ring]),
-                self.reason_text,
-                self.face_dropdown,
-                self._label_row("Move left / right", self.s_dx),
-                self._label_row("Move up / down", self.s_dy),
-                self._label_row("Zoom", self.s_zoom),
-                self._label_row("Rotate", self.s_rot),
-                ft.Row([self.prev_button, self.next_button, self.reset_button,
-                        self.save_button], wrap=True),
-                self.status_text,
-            ],
-            spacing=10,
+        controls_panel = ft.Container(
+            content=ft.Column(
+                [
+                    ft.Row([self.counter_text, self.busy_ring]),
+                    self.reason_text,
+                    self.face_dropdown,
+                    self._label_row("Move left / right", self.s_dx),
+                    self._label_row("Move up / down", self.s_dy),
+                    self._label_row("Zoom", self.s_zoom),
+                    self._label_row("Rotate", self.s_rot),
+                    ft.Row([self.prev_button, self.next_button, self.reset_button,
+                            self.save_button], wrap=True, spacing=8, run_spacing=8),
+                    self.status_text,
+                ],
+                spacing=10,
+            ),
+            bgcolor=SURFACE, border=ft.border.all(1, BORDER), border_radius=16,
+            padding=16,
         )
         center = ft.Column(
-            [ft.Stack([self.image_placeholder, self.image_view]), controls],
-            expand=True, spacing=12, scroll=ft.ScrollMode.AUTO,
+            [ft.Container(
+                content=ft.Stack([self.image_placeholder, self.image_view]),
+                border_radius=12,
+                shadow=ft.BoxShadow(blur_radius=22, spread_radius=-6,
+                                    color="#66000000", offset=ft.Offset(0, 10)),
+             ),
+             controls_panel],
+            expand=True, spacing=14, scroll=ft.ScrollMode.AUTO,
         )
         self.page.controls.clear()
-        self.page.add(ft.Container(
-            content=ft.Row([left, center], expand=True, spacing=14,
-                           vertical_alignment=ft.CrossAxisAlignment.START),
-            padding=14, expand=True,
+        self.page.add(ft.Column(
+            [header,
+             ft.Container(
+                 content=ft.Row([left, center], expand=True, spacing=16,
+                                vertical_alignment=ft.CrossAxisAlignment.START),
+                 padding=ft.padding.only(16, 14, 16, 16), expand=True,
+             )],
+            spacing=0, expand=True,
         ))
         self.page.update()
         if self.items:
@@ -195,16 +239,22 @@ class ReviewScreen:
             def make_handler(i: int):
                 return lambda e: self._load_item(i)
 
+            selected = idx == self.index
             self.item_list.controls.append(
-                ft.ListTile(
-                    dense=True,
-                    title=ft.Text(item.filename, size=12,
-                                  weight=ft.FontWeight.BOLD
-                                  if idx == self.index else ft.FontWeight.NORMAL),
-                    subtitle=ft.Text(item.reasons[:80], size=10,
-                                     color=ft.Colors.GREY_700),
-                    selected=idx == self.index,
+                ft.Container(
+                    content=ft.Column(
+                        [heading(item.filename, size=12,
+                                 color=ACCENT if selected else TXT),
+                         body(item.reasons[:90] or "flagged for review",
+                              size=10.5, color=MUTED)],
+                        spacing=3, tight=True,
+                    ),
+                    padding=ft.Padding(12, 9, 12, 9),
+                    border_radius=10,
+                    bgcolor=SURFACE_2 if selected else None,
+                    border=ft.border.all(1, BORDER if selected else "#00000000"),
                     on_click=make_handler(idx),
+                    ink=True,
                 )
             )
 
@@ -274,14 +324,18 @@ class ReviewScreen:
                 bgr, result, self.settings.crop, self.settings.quality,
                 face_index=self.face_index, adjust=self.adjust,
             )
+            self._image_seq += 1
+            self.image_view.key = f"review-{self._image_seq}"
             self.image_view.src_base64 = bgr_to_jpeg_base64(rendered.output_bgr, 1100)
             self.image_view.visible = True
             self.image_placeholder.visible = False
             if rendered.qa.review_reasons:
                 self.status_text.value = ("Current checks: "
                                           + "; ".join(rendered.qa.review_reasons))
+                self.status_text.color = AMBER
             else:
                 self.status_text.value = "Current checks: no remaining warnings."
+                self.status_text.color = GREEN
         except Exception:
             self.log.exception("Review: render failed for %s", name)
             self.status_text.value = (f"Could not render {name}. "
