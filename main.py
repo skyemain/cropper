@@ -14,7 +14,15 @@ from __future__ import annotations
 
 import argparse
 import multiprocessing
+import os
 import sys
+
+# In a windowed (no-console) frozen build, sys.stdout/stderr are None; give
+# libraries that print a harmless sink so they cannot crash the app.
+if sys.stdout is None:
+    sys.stdout = open(os.devnull, "w", encoding="utf-8")
+if sys.stderr is None:
+    sys.stderr = open(os.devnull, "w", encoding="utf-8")
 
 from app import APP_NAME, __version__
 from utilities.logging_utils import get_logger, setup_logging
