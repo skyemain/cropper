@@ -1,5 +1,7 @@
 # ID Photo Auto Cropper
 
+**Repository:** https://github.com/yeruvavinay/cropper
+
 A Windows desktop application that turns folders of ordinary portrait
 photographs (`IMG_0001.JPG`, `DSC_4382.JPG`, ...) into standardized ID-card
 portraits: it detects the face, locates the eyes, levels the eye line, scales
@@ -189,4 +191,22 @@ packaging/               PyInstaller spec + Inno Setup installer script
 tests/                   pytest suite (64 tests)
 build_windows.bat        one-command Windows build (tests + exe + installer)
 run_windows.bat          run from source on Windows
+push_to_github.bat       push main to GitHub (after cloning locally)
+```
+
+## GitHub
+
+Canonical repository: **https://github.com/yeruvavinay/cropper**
+
+If you cloned from Cursor's temporary Origin remote and need to push to GitHub:
+
+```bat
+push_to_github.bat
+```
+
+Or manually:
+
+```bat
+git remote add github https://github.com/yeruvavinay/cropper.git
+git push -u github main
 ```
