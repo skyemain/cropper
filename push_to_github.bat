@@ -4,7 +4,7 @@ REM Requires: Git for Windows, and GitHub login (browser or personal access toke
 setlocal
 cd /d "%~dp0"
 
-set "GITHUB_URL=https://github.com/yeruvavinay/cropper.git"
+set "GITHUB_URL=https://github.com/skyemain/cropper.git"
 
 git remote get-url github >nul 2>nul
 if errorlevel 1 (
@@ -23,5 +23,5 @@ if errorlevel 1 (
 )
 
 echo.
-echo Done. Your code is at https://github.com/yeruvavinay/cropper
+echo Done. Your code is at https://github.com/skyemain/cropper
 exit /b 0

@@ -1,6 +1,6 @@
 # ID Photo Auto Cropper
 
-**Repository:** https://github.com/yeruvavinay/cropper
+**Repository:** https://github.com/skyemain/cropper
 
 A Windows desktop application that turns folders of ordinary portrait
 photographs (`IMG_0001.JPG`, `DSC_4382.JPG`, ...) into standardized ID-card
@@ -196,7 +196,7 @@ push_to_github.bat       push main to GitHub (after cloning locally)
 
 ## GitHub
 
-Canonical repository: **https://github.com/yeruvavinay/cropper**
+Canonical repository: **https://github.com/skyemain/cropper**
 
 If you cloned from Cursor's temporary Origin remote and need to push to GitHub:
 
@@ -207,6 +207,6 @@ push_to_github.bat
 Or manually:
 
 ```bat
-git remote add github https://github.com/yeruvavinay/cropper.git
+git remote add github https://github.com/skyemain/cropper.git
 git push -u github main
 ```
