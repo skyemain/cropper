@@ -2,6 +2,29 @@
 
 **Repository:** https://github.com/skyemain/cropper
 
+## For Windows users (no Python required)
+
+You only need **one file**:
+
+| File | What it does |
+|------|----------------|
+| **`IDPhotoAutoCropper-Setup.exe`** | **Recommended.** Install like any normal app. Start Menu shortcut. Uninstall from Windows Settings → Apps. Run a newer Setup to upgrade in place. |
+| **`IDPhotoAutoCropper.exe`** | Portable — copy this single file anywhere and double-click. To update, delete the old file and copy the new one. |
+
+Download from **[GitHub Releases](https://github.com/skyemain/cropper/releases)** (or ask whoever built the app for these files).
+
+**Install:** double-click `IDPhotoAutoCropper-Setup.exe` → Next → Install → open from Start Menu.
+
+**Update:** download the new `IDPhotoAutoCropper-Setup.exe` and run it — the old version is replaced automatically. Or uninstall from Settings → Apps first, then install.
+
+**Uninstall:** Settings → Apps → ID Photo Auto Cropper → Uninstall.
+
+Full step-by-step guide: [INSTALL.txt](INSTALL.txt)
+
+You never need to run `.bat` files, Python, or pip unless you are developing the app yourself.
+
+---
+
 A Windows desktop application that turns folders of ordinary portrait
 photographs (`IMG_0001.JPG`, `DSC_4382.JPG`, ...) into standardized ID-card
 portraits: it detects the face, locates the eyes, levels the eye line, scales
@@ -136,39 +159,35 @@ placement on real crops (verified by re-detecting the face on the output),
 corrupt/unsupported files, no-face and multiple-face classification, resume
 modes, cancellation, contact sheets, and the bit-for-bit source-safety proof.
 
-## Building the Windows application
+## Building the Windows application (developers only)
 
-On a Windows 10/11 machine:
+On a Windows 10/11 machine, run **one** script:
 
 ```bat
 build_windows.bat
 ```
 
-The script creates the venv, installs pinned dependencies, runs the test
-suite, builds a **one-folder** application with PyInstaller
-(`packaging/pyinstaller.spec`), verifies the bundled models/assets, runs the
-packaged app's `--selftest`, and - if [Inno Setup 6](https://jrsoftware.org/isinfo.php)
-is installed - compiles the installer.
-
-Outputs:
+This produces everything end users need:
 
 ```
-dist\ID Photo Auto Cropper\ID Photo Auto Cropper.exe   (portable app folder)
-dist\installer\IDPhotoAutoCropper-Setup.exe            (installer, optional)
+dist\installer\IDPhotoAutoCropper-Setup.exe    ← give users this (install + uninstall + upgrade)
+dist\portable\IDPhotoAutoCropper.exe         ← optional single-file portable copy
 ```
 
-The target computer needs **no Python, no pip, no Visual Studio, and no
-internet access** - all dependencies and both MediaPipe models are packaged.
+Requires [Inno Setup 6](https://jrsoftware.org/isinfo.php) for the installer (free).
+The target PC needs **no Python** — models, OpenCV, MediaPipe, and the GUI are all bundled.
 
-A one-FOLDER build is used deliberately: MediaPipe/OpenCV ship native
-libraries and model assets that are more reliable unpacked next to the
-executable than repacked into a single self-extracting `.exe`
-(reliability over single-file convenience). `flet build windows` was
-considered but requires a Flutter SDK toolchain; plain PyInstaller with an
-explicit spec keeps the build reproducible with one command.
+### Automated builds (GitHub Releases)
 
-The installer performs a per-user install (no admin rights needed), creates
-a Start Menu entry, an optional desktop shortcut, and an uninstaller.
+Tag a release to build on GitHub's Windows runner (no local build machine needed):
+
+```bat
+git tag v1.0.1
+git push origin v1.0.1
+```
+
+The workflow uploads `IDPhotoAutoCropper-Setup.exe` and `IDPhotoAutoCropper.exe`
+to the release page. You can also trigger it manually from Actions → Build Windows.
 
 ## Privacy
 

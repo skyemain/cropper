@@ -134,8 +134,22 @@ def _run_headless_batch(args: argparse.Namespace) -> int:
     return 0
 
 
+def _acquire_single_instance_mutex() -> None:
+    """Windows only: lets the installer detect a running copy and close it."""
+    if sys.platform != "win32":
+        return
+    try:
+        import ctypes
+
+        ctypes.windll.kernel32.CreateMutexW(None, False, "Global\\IDPhotoAutoCropper")
+    except Exception:
+        pass
+
+
 def main(argv: list[str] | None = None) -> int:
     args = _parse_args(argv if argv is not None else sys.argv[1:])
+    if not args.selftest and not args.process:
+        _acquire_single_instance_mutex()
     setup_logging(verbose=args.verbose)
     log = get_logger()
     log.info("%s v%s starting (frozen=%s)", APP_NAME, __version__,

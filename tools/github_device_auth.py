@@ -31,7 +31,7 @@ def request_device_code() -> dict:
         return json.loads(resp.read().decode())
 
 
-def poll_token(device: dict, max_attempts: int = 60) -> str:
+def poll_token(device: dict, max_attempts: int = 72) -> str:
     interval = int(device.get("interval", 5))
     for attempt in range(max_attempts):
         time.sleep(interval)
