@@ -76,6 +76,86 @@ def style_field(field: ft.TextField) -> ft.TextField:
     return field
 
 
+def folder_pick_button(label: str, subtitle: str, on_click) -> ft.Container:
+    """Large clickable tile that opens the native folder picker."""
+    return ft.Container(
+        content=ft.Row(
+            [
+                ft.Container(
+                    content=ft.Icon(ft.Icons.FOLDER_OPEN_ROUNDED, size=30, color=ACCENT),
+                    width=48,
+                    height=48,
+                    border_radius=12,
+                    bgcolor="#2A2F55",
+                    alignment=ft.alignment.center,
+                ),
+                ft.Column(
+                    [
+                        heading(label, size=13.5),
+                        body(subtitle, size=11.5, color=MUTED),
+                    ],
+                    spacing=2,
+                    tight=True,
+                    expand=True,
+                ),
+                ft.Icon(ft.Icons.CHEVRON_RIGHT_ROUNDED, size=20, color=MUTED),
+            ],
+            spacing=12,
+            vertical_alignment=ft.CrossAxisAlignment.CENTER,
+        ),
+        bgcolor=SURFACE_2,
+        border=ft.border.all(1, BORDER),
+        border_radius=12,
+        padding=ft.Padding(14, 12, 14, 12),
+        ink=True,
+        on_click=on_click,
+        tooltip=label,
+    )
+
+
+class PathChip:
+    """Read-only selected path with a folder icon (not an editable text field)."""
+
+    def __init__(self, label: str, *, placeholder: str,
+                 icon=ft.Icons.FOLDER_OUTLINED):
+        self.placeholder = placeholder
+        self.icon_ctl = ft.Icon(icon, size=18, color=MUTED)
+        self.path_text = body(placeholder, size=12.5, color=MUTED,
+                              max_lines=2, overflow=ft.TextOverflow.ELLIPSIS)
+        self.control = ft.Container(
+            content=ft.Row(
+                [
+                    self.icon_ctl,
+                    ft.Column(
+                        [body(label, size=11, color=MUTED), self.path_text],
+                        spacing=1, tight=True, expand=True,
+                    ),
+                ],
+                spacing=10,
+                vertical_alignment=ft.CrossAxisAlignment.START,
+            ),
+            bgcolor=SURFACE_2,
+            border=ft.border.all(1, BORDER),
+            border_radius=10,
+            padding=ft.Padding(12, 10, 12, 10),
+            tooltip=placeholder,
+        )
+
+    def set(self, path: str) -> None:
+        has_path = bool(path)
+        self.icon_ctl.color = ACCENT if has_path else MUTED
+        self.path_text.value = path if has_path else self.placeholder
+        self.path_text.color = TXT if has_path else MUTED
+        self.control.tooltip = path if has_path else self.placeholder
+
+
+def path_chip(label: str, path: str, *, placeholder: str,
+              icon=ft.Icons.FOLDER_OUTLINED) -> PathChip:
+    chip = PathChip(label, placeholder=placeholder, icon=icon)
+    chip.set(path)
+    return chip
+
+
 def card(title: str, icon, *controls: ft.Control) -> ft.Container:
     """A titled surface card with an accent icon badge."""
     header = ft.Row(

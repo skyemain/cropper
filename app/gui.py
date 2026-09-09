@@ -33,8 +33,10 @@ from app.theme import (
     body,
     button_style,
     card,
+    folder_pick_button,
     header_bar,
     heading,
+    path_chip,
     stat_chip,
     style_field,
 )
@@ -130,22 +132,27 @@ class CropperApp:
 
     def _build_controls(self) -> None:
         # --- source ---------------------------------------------------
-        self.source_field = style_field(ft.TextField(
-            label="Source folder",
-            hint_text=r"e.g. C:\Photos\Employee_IDs",
-            expand=True,
-            on_change=lambda e: self._on_source_changed(),
-        ))
-        self.browse_button = ft.IconButton(
-            icon=ft.Icons.FOLDER_OPEN_ROUNDED, tooltip="Select Source Folder",
-            icon_color=ACCENT, on_click=self._browse_source,
+        self._source_path = ""
+        self._output_path = ""
+        self.source_pick = folder_pick_button(
+            "Choose source folder",
+            "Pick the folder with your portrait photos",
+            self._browse_source,
         )
-        self.output_field = style_field(ft.TextField(
-            label="Output folder (created automatically)", read_only=True,
-            value="", expand=True,
-        ))
-        self.source_info = body("Select the folder that contains the portrait photos.",
-                                color=MUTED, size=12)
+        self.source_path_chip = path_chip(
+            "Source folder", "",
+            placeholder="No folder selected yet",
+            icon=ft.Icons.FOLDER_COPY_ROUNDED,
+        )
+        self.output_path_chip = path_chip(
+            "Output folder", "",
+            placeholder="Created automatically next to source (…_crop)",
+            icon=ft.Icons.DRIVE_FOLDER_UPLOAD_ROUNDED,
+        )
+        self.source_info = body(
+            "Click the folder icon above to browse — no typing required.",
+            color=MUTED, size=12,
+        )
 
         self.dir_picker = ft.FilePicker(on_result=self._on_dir_picked)
         self.sample_picker = ft.FilePicker(on_result=self._on_samples_picked)
@@ -279,8 +286,9 @@ class CropperApp:
             [
                 card(
                     "Source", ft.Icons.FOLDER_COPY_ROUNDED,
-                    ft.Row([self.source_field, self.browse_button]),
-                    self.output_field,
+                    self.source_pick,
+                    self.source_path_chip.control,
+                    self.output_path_chip.control,
                     self.source_info,
                 ),
                 card(
@@ -433,28 +441,22 @@ class CropperApp:
     # ------------------------------------------------------------------
 
     def _browse_source(self, e: ft.ControlEvent) -> None:
-        if self.page.web:
-            self._info_dialog(
-                "Folder browser unavailable",
-                "The native folder browser is available in the desktop app.\n"
-                "Type or paste the source folder path into the text field instead.",
-            )
-            return
         self.dir_picker.get_directory_path(dialog_title="Select Source Folder")
 
     def _on_dir_picked(self, e: ft.FilePickerResultEvent) -> None:
         if e.path:
-            self.source_field.value = e.path
-            self._on_source_changed()
+            self._apply_source_path(e.path)
 
-    def _on_source_changed(self) -> None:
-        raw = (self.source_field.value or "").strip().strip('"')
+    def _apply_source_path(self, raw: str) -> None:
+        raw = (raw or "").strip().strip('"')
+        self._source_path = raw
         self.source_dir = None
         self.crop_root = None
         self.image_count = 0
         self.samples = []
         self.sample_index = 0
         self._preview_cache = None
+        self._output_path = ""
         if raw:
             path = Path(raw)
             if path.is_dir():
@@ -465,24 +467,26 @@ class CropperApp:
                     self.crop_root = crop_root
                     self.image_count = len(images)
                     self.samples = images[:50]
-                    self.output_field.value = str(crop_root)
+                    self._source_path = str(self.source_dir)
+                    self._output_path = str(crop_root)
                     self.source_info.value = (
                         f"{len(images)} supported image(s) found (JPG / JPEG / PNG). "
                         "Originals are never modified."
                     )
                     self.source_info.color = GREEN
                 except OutputSafetyError as exc:
-                    self.output_field.value = ""
                     self.source_info.value = str(exc)
                     self.source_info.color = RED
             else:
-                self.output_field.value = ""
-                self.source_info.value = "Folder not found. Check the path."
+                self.source_info.value = "Folder not found. Please choose another folder."
                 self.source_info.color = RED
         else:
-            self.output_field.value = ""
-            self.source_info.value = "Select the folder that contains the portrait photos."
+            self.source_info.value = (
+                "Click the folder icon above to browse — no typing required."
+            )
             self.source_info.color = MUTED
+        self.source_path_chip.set(self._source_path)
+        self.output_path_chip.set(self._output_path)
         self.page.update()
 
     def _require_source(self) -> bool:
@@ -846,8 +850,7 @@ class CropperApp:
         self.test25_button.disabled = running
         self.process_all_button.disabled = running
         self.cancel_button.disabled = not running
-        self.source_field.disabled = running
-        self.browse_button.disabled = running
+        self.source_pick.disabled = running
 
     def _cancel_batch(self, e: ft.ControlEvent) -> None:
         if self.processor is not None:
