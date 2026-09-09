@@ -57,6 +57,7 @@ class CropperApp:
         self.sample_index = 0
         self._preview_cache: Optional[tuple] = None  # (path, bgr, EngineResult, rendered)
         self._preview_busy = False
+        self._preview_seq = 0  # bumps the Image keys to force repaints
 
         self.processor: Optional[BatchProcessor] = None
         self._sheet_cancel = threading.Event()
@@ -243,9 +244,10 @@ class CropperApp:
             ],
             wrap=True,
         )
+        self.original_label = ft.Text("ORIGINAL", weight=ft.FontWeight.BOLD, size=12)
         preview_row = ft.Row(
             [
-                ft.Column([ft.Text("ORIGINAL", weight=ft.FontWeight.BOLD, size=12),
+                ft.Column([self.original_label,
                            ft.Stack([self.preview_orig_placeholder, self.preview_original])],
                           expand=1, horizontal_alignment=ft.CrossAxisAlignment.CENTER),
                 ft.Column([ft.Text("CROPPED", weight=ft.FontWeight.BOLD, size=12),
@@ -507,11 +509,19 @@ class CropperApp:
             self.page.update()
             return
         path, bgr, result, rendered = cache
-        if self.overlay_check.value and result.faces:
+        overlay_on = bool(self.overlay_check.value and result.faces)
+        if overlay_on:
             chosen = rendered.face_index if rendered else result.primary_face_index()
             display = draw_debug_overlay(bgr, result, chosen, max_dim=_PREVIEW_DIM * 2)
         else:
             display = bgr
+        self.original_label.value = ("ORIGINAL  (detection overlay)" if overlay_on
+                                     else "ORIGINAL")
+        # Changing the key forces the Flutter Image widget to rebuild; without
+        # it, some clients do not repaint when only src_base64 changes.
+        self._preview_seq += 1
+        self.preview_original.key = f"orig-{self._preview_seq}"
+        self.preview_cropped.key = f"crop-{self._preview_seq}"
         self.preview_original.src_base64 = bgr_to_jpeg_base64(display, _PREVIEW_DIM * 2)
         self.preview_original.visible = True
         self.preview_orig_placeholder.visible = False
