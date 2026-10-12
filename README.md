@@ -13,6 +13,8 @@ You only need **one file**:
 
 Download from **[GitHub Releases](https://github.com/skyemain/cropper/releases)** (or ask whoever built the app for these files).
 
+**Unzipped the source zip?** There is no `.exe` inside it — read **[START_HERE.txt](START_HERE.txt)** or run **`Download the ready-made app.bat`**.
+
 **Install:** double-click `IDPhotoAutoCropper-Setup.exe` → Next → Install → open from Start Menu.
 
 **Update:** download the new `IDPhotoAutoCropper-Setup.exe` and run it — the old version is replaced automatically. Or uninstall from Settings → Apps first, then install.

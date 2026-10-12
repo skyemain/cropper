@@ -1,0 +1,51 @@
+================================================================================
+  ID Photo Auto Cropper — READ THIS FIRST (Windows)
+================================================================================
+
+IMPORTANT: This zip is SOURCE CODE, not the finished app.
+
+  You will NOT find IDPhotoAutoCropper.exe in this folder until you either:
+    (A) Download the ready-made app from GitHub  — RECOMMENDED, no Python
+    (B) Run build_windows.bat on this PC         — needs Python, 20-40 min
+
+--------------------------------------------------------------------------------
+  OPTION A — RECOMMENDED (most people)
+--------------------------------------------------------------------------------
+
+  1. Double-click:  Download the ready-made app.bat
+     (opens the download page in your browser)
+
+  2. Download:  IDPhotoAutoCropper-Setup.exe
+
+  3. Double-click the Setup file to install.
+
+  4. Open "ID Photo Auto Cropper" from the Start Menu.
+
+  You can delete this unzipped source folder after installing.
+
+  Full guide: INSTALL.txt
+
+--------------------------------------------------------------------------------
+  OPTION B — Run from source (developers / no internet)
+--------------------------------------------------------------------------------
+
+  Requires Python 3.11 or 3.12 from https://www.python.org/downloads/
+  Check "Add python.exe to PATH" during install.
+
+  Double-click:  run_windows.bat
+
+  If the window closes immediately, open INSTALL.txt — section "Troubleshooting".
+
+--------------------------------------------------------------------------------
+  OPTION C — Build your own .exe on this PC
+--------------------------------------------------------------------------------
+
+  Requires Python 3.11 or 3.12 (same as Option B).
+
+  Double-click:  build_windows.bat
+  Wait 20-40 minutes (first time).
+
+  When finished, your .exe is here:
+    dist\portable\IDPhotoAutoCropper.exe
+
+================================================================================

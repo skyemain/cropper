@@ -1,54 +1,142 @@
-ID Photo Auto Cropper — Windows install guide
-==============================================
-
-YOU ONLY NEED ONE FILE
-----------------------
-Download and run:
-
-    IDPhotoAutoCropper-Setup.exe
-
-That is the entire installer. You do NOT need Python, pip, or any .bat files.
+ID Photo Auto Cropper — Windows guide
+======================================
 
 
-FIRST-TIME INSTALL
-------------------
-1. Double-click IDPhotoAutoCropper-Setup.exe
-2. Follow the short wizard (Next → Install)
-3. Open "ID Photo Auto Cropper" from the Start Menu
-4. Click "Choose source folder" and pick your photos
-5. Click "Start Processing"
+READ THIS IF YOU UNZIPPED THE PROJECT FROM GITHUB
+-------------------------------------------------
+
+The zip file contains SOURCE CODE (Python files), not the finished program.
+
+  IDPhotoAutoCropper.exe is NOT inside the zip.
+
+That is normal. The .exe is built separately and posted on GitHub Releases.
 
 
-UPDATING TO A NEW VERSION
--------------------------
-Option A (recommended): Run the new IDPhotoAutoCropper-Setup.exe
-  - The installer replaces the old version automatically
-  - Your crop settings are preserved
+================================================================================
+  RECOMMENDED: Install the ready-made app (no Python, no .bat files)
+================================================================================
 
-Option B: Uninstall first, then install
-  1. Windows Settings → Apps → Installed apps
-  2. Find "ID Photo Auto Cropper" → Uninstall
-  3. Run the new IDPhotoAutoCropper-Setup.exe
+Step 1 — Get the installer
+  • Double-click in this folder:  Download the ready-made app.bat
+    OR open in a browser:
+    https://github.com/skyemain/cropper/releases/latest
+
+Step 2 — Download one of these files (not the "Source code" zip):
+  • IDPhotoAutoCropper-Setup.exe   (~130 MB)  — install like any Windows app
+  • IDPhotoAutoCropper.exe         (~180 MB)  — portable, single file, no install
+
+Step 3 — Install (Setup.exe)
+  • Double-click IDPhotoAutoCropper-Setup.exe
+  • Next → Install → Finish
+  • Start Menu → "ID Photo Auto Cropper"
+
+Step 4 — Use the app
+  • Click "Choose source folder" and pick your photos
+  • Click "Start Processing"
+  • Cropped files appear in a folder named YourFolder_crop next to your photos
+
+You do not need run_windows.bat, build_windows.bat, or Python for this path.
 
 
-PORTABLE (NO INSTALL)
----------------------
-If you received IDPhotoAutoCropper.exe (single file, no installer):
-  - Copy it anywhere (Desktop, USB drive, shared folder)
-  - Double-click to run
-  - To update: delete the old .exe and copy the new one
+================================================================================
+  ALTERNATIVE: Run from source (this zip folder)
+================================================================================
+
+Use this only if you cannot download from GitHub Releases.
+
+Requirements:
+  • Windows 10 or 11
+  • Python 3.11 or 3.12 from https://www.python.org/downloads/
+  • During Python setup, enable "Add python.exe to PATH"
+
+Steps:
+  1. Unzip the project to a simple path, e.g. C:\cropper
+     (Avoid deep paths with special characters.)
+  2. Double-click run_windows.bat
+  3. First run installs libraries — wait several minutes
+  4. The app window should open
+
+Log file if something fails: last-run.log (same folder as run_windows.bat)
 
 
-UNINSTALL
----------
-Windows Settings → Apps → ID Photo Auto Cropper → Uninstall
+================================================================================
+  ALTERNATIVE: Build IDPhotoAutoCropper.exe on this PC
+================================================================================
 
-Or: Start Menu → ID Photo Auto Cropper → Uninstall ID Photo Auto Cropper
+Use this to create the .exe yourself from the source zip.
+
+Requirements:
+  • Python 3.11 or 3.12 (with PATH), same as above
+  • Internet on first build (downloads libraries)
+  • About 20-40 minutes for the first build
+  • Optional: Inno Setup 6 for IDPhotoAutoCropper-Setup.exe
+    https://jrsoftware.org/isinfo.php
+
+Steps:
+  1. Double-click build_windows.bat
+  2. Leave the black window open until you see "BUILD SUCCESSFUL"
+  3. Find your files:
+       dist\portable\IDPhotoAutoCropper.exe
+       dist\installer\IDPhotoAutoCropper-Setup.exe   (if Inno Setup was installed)
+
+Log file if build fails: last-build.log
 
 
-PRIVACY
--------
-All processing is offline on your computer. No internet is required to use the app.
+================================================================================
+  TROUBLESHOOTING — ".bat file does nothing" or window closes instantly
+================================================================================
+
+Symptom: Double-clicking run_windows.bat or build_windows.bat flashes and closes.
+
+Cause 1 — Python is not installed or not on PATH
+  Fix: Install Python 3.11 or 3.12 and check "Add to PATH".
+  Or skip Python entirely: use Download the ready-made app.bat
+
+Cause 2 — You expected .exe inside the zip
+  Fix: The exe is only on GitHub Releases, or in dist\portable\ after a successful
+  build_windows.bat run. See START_HERE.txt
+
+Cause 3 — Antivirus blocked Python or the build
+  Fix: Allow Python and the project folder in your antivirus; try again.
+
+Cause 4 — Wrong folder
+  Fix: run_windows.bat must be in the project root (same folder as main.py).
+
+After a failed run, open last-run.log or last-build.log in Notepad and read the
+last lines for the error message.
+
+
+================================================================================
+  UPDATING TO A NEW VERSION
+================================================================================
+
+If you installed with Setup.exe (recommended):
+  • Download the new IDPhotoAutoCropper-Setup.exe from Releases
+  • Run it — replaces the old version automatically
+
+Or uninstall first:
+  • Settings → Apps → ID Photo Auto Cropper → Uninstall
+  • Run the new Setup.exe
+
+If you use the portable IDPhotoAutoCropper.exe:
+  • Delete the old .exe and copy the new one
+
+
+================================================================================
+  UNINSTALL
+================================================================================
+
+Settings → Apps → Installed apps → ID Photo Auto Cropper → Uninstall
+
+Or Start Menu → Uninstall ID Photo Auto Cropper
+
+
+================================================================================
+  PRIVACY
+================================================================================
+
+All photo processing happens on your computer. The app does not upload your
+images. Internet is only needed to download the app or Python libraries.
 
 
 Support: https://github.com/skyemain/cropper

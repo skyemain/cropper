@@ -1,106 +1,93 @@
 @echo off
-REM ============================================================
-REM  BUILD SCRIPT (developers only — end users never run this)
-REM
-REM  Produces two downloads for Windows users:
-REM    dist\installer\IDPhotoAutoCropper-Setup.exe   (recommended)
-REM    dist\portable\IDPhotoAutoCropper.exe          (copy anywhere)
-REM ============================================================
+title ID Photo Auto Cropper — Build
 setlocal enabledelayedexpansion
 cd /d "%~dp0"
 
+set "LOG=%~dp0last-build.log"
+echo === Build started %date% %time% === > "%LOG%"
+
 echo.
-echo [1/9] Preparing Python virtual environment...
-if not exist ".venv\Scripts\python.exe" (
-    where py >nul 2>nul && (py -3.11 -m venv .venv 2>nul || py -3.12 -m venv .venv 2>nul || py -3 -m venv .venv) || python -m venv .venv
-)
-if not exist ".venv\Scripts\python.exe" (
-    echo ERROR: Could not create a virtual environment. Install Python 3.11 or 3.12 from python.org first.
-    exit /b 1
-)
+echo ============================================================
+echo  BUILD IDPhotoAutoCropper.exe ON THIS PC
+echo  First build: about 20-40 minutes. Log: last-build.log
+echo ============================================================
+echo.
+
+call "%~dp0scripts\ensure_python.bat"
+if errorlevel 1 goto :failed
+call "%~dp0scripts\ensure_venv.bat" dev
+if errorlevel 1 goto :failed
 set "PY=.venv\Scripts\python.exe"
 
-echo.
-echo [2/9] Installing pinned dependencies...
-"%PY%" -m pip install --upgrade pip --quiet || goto :fail
-"%PY%" -m pip install -r requirements-dev.txt --quiet || goto :fail
+echo [1/9] Syncing version...
+"%PY%" packaging\sync_version.py >> "%LOG%" 2>&1 || goto :failed
 
-echo.
-echo [3/9] Syncing installer version from app\__init__.py...
-"%PY%" packaging\sync_version.py || goto :fail
+echo [2/9] Running tests...
+"%PY%" -m pytest -q >> "%LOG%" 2>&1 || goto :failed
 
-echo.
-echo [4/9] Running the automated test suite...
-"%PY%" -m pytest -q || goto :fail
-
-echo.
-echo [5/9] Cleaning previous build output...
+echo [3/9] Cleaning old build...
 if exist build rmdir /s /q build
 if exist "dist\ID Photo Auto Cropper" rmdir /s /q "dist\ID Photo Auto Cropper"
 if exist "dist\portable" rmdir /s /q "dist\portable"
 if exist "dist\installer" rmdir /s /q "dist\installer"
 
-echo.
-echo [6/9] Building the installed app folder (PyInstaller one-folder)...
-"%PY%" -m PyInstaller --noconfirm packaging\pyinstaller.spec || goto :fail
+echo [4/9] PyInstaller folder build...
+"%PY%" -m PyInstaller --noconfirm packaging\pyinstaller.spec >> "%LOG%" 2>&1 || goto :failed
 
-echo.
-echo [7/9] Building the portable single-file .exe...
-"%PY%" -m PyInstaller --noconfirm packaging\pyinstaller-onefile.spec || goto :fail
-if not exist "dist\IDPhotoAutoCropper.exe" goto :fail_portable
+echo [5/9] PyInstaller portable .exe...
+"%PY%" -m PyInstaller --noconfirm packaging\pyinstaller-onefile.spec >> "%LOG%" 2>&1 || goto :failed
+
+if not exist "dist\IDPhotoAutoCropper.exe" (
+    echo ERROR: dist\IDPhotoAutoCropper.exe was not created.
+    goto :failed
+)
 if not exist "dist\portable" mkdir "dist\portable"
-move /Y "dist\IDPhotoAutoCropper.exe" "dist\portable\IDPhotoAutoCropper.exe" >nul
+move /Y "dist\IDPhotoAutoCropper.exe" "dist\portable\IDPhotoAutoCropper.exe" >> "%LOG%" 2>&1
 
-echo.
-echo [8/9] Verifying packaged builds...
 set "EXE=dist\ID Photo Auto Cropper\ID Photo Auto Cropper.exe"
 set "PORTABLE=dist\portable\IDPhotoAutoCropper.exe"
 if not exist "%EXE%" (
-    echo ERROR: expected executable not found: %EXE%
-    goto :fail
+    echo ERROR: Missing "%EXE%"
+    goto :failed
 )
-if not exist "dist\ID Photo Auto Cropper\_internal\models\face_landmarker.task" (
-    echo ERROR: bundled MediaPipe model missing from the folder build.
-    goto :fail
-)
-"%EXE%" --selftest || goto :fail
-echo Folder build selftest passed.
-"%PORTABLE%" --selftest || goto :fail
-echo Portable build selftest passed.
 
-echo.
-echo [9/9] Building the Windows installer (Inno Setup)...
+echo [6/9] Selftest folder build...
+"%EXE%" --selftest >> "%LOG%" 2>&1 || goto :failed
+
+echo [7/9] Selftest portable build...
+"%PORTABLE%" --selftest >> "%LOG%" 2>&1 || goto :failed
+
+echo [8/9] Building installer (Inno Setup)...
 set "ISCC="
 where iscc >nul 2>nul && set "ISCC=iscc"
 if not defined ISCC if exist "%ProgramFiles(x86)%\Inno Setup 6\ISCC.exe" set "ISCC=%ProgramFiles(x86)%\Inno Setup 6\ISCC.exe"
 if not defined ISCC if exist "%ProgramFiles%\Inno Setup 6\ISCC.exe" set "ISCC=%ProgramFiles%\Inno Setup 6\ISCC.exe"
 if defined ISCC (
-    "%ISCC%" packaging\installer.iss || goto :fail
+    "%ISCC%" packaging\installer.iss >> "%LOG%" 2>&1 || goto :failed
     echo Installer created: dist\installer\IDPhotoAutoCropper-Setup.exe
 ) else (
-    echo WARNING: Inno Setup not found — skipping installer.
-    echo Install from https://jrsoftware.org/isinfo.php and re-run this script.
+    echo NOTE: Inno Setup not installed — skipped installer.
+    echo Install from https://jrsoftware.org/isinfo.php to also build Setup.exe
 )
 
 echo.
 echo ============================================================
-echo  BUILD SUCCESSFUL — give users ONE of these files:
+echo  BUILD SUCCESSFUL
 echo.
-echo  RECOMMENDED (install + uninstall + easy updates):
-echo    dist\installer\IDPhotoAutoCropper-Setup.exe
-echo.
-echo  PORTABLE (copy single .exe anywhere, no install):
+echo  Portable single file:
 echo    dist\portable\IDPhotoAutoCropper.exe
-echo.
-echo  See INSTALL.txt for end-user instructions.
+if defined ISCC (
+    echo.
+    echo  Windows installer:
+    echo    dist\installer\IDPhotoAutoCropper-Setup.exe
+)
 echo ============================================================
+echo.
+pause
 exit /b 0
 
-:fail_portable
-echo ERROR: portable executable was not produced.
-goto :fail
-
-:fail
+:failed
 echo.
-echo BUILD FAILED - see the messages above.
+echo BUILD FAILED — open last-build.log in Notepad for details.
+call "%~dp0scripts\show_error.bat" build
 exit /b 1
